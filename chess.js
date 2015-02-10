@@ -16,9 +16,9 @@ function TheGame(size, debug) {
 
 	this.chessboard = []; // 64 items
 	this.history = [];
-	if(!size) size = 8;
-	this.size = size;
+	this.size = size ? size : 8;
 	// this.stack = new Stack();
+	var max = this.size * this.size;
 
 	this.print = function () {
 		for(var j = 0; j<this.size; j++) {
@@ -30,25 +30,19 @@ function TheGame(size, debug) {
 		console.log("");
 	};
 
-	this.fill = function (x,y,order) {
+	this.set = function (x,y,order) {
 		this.chessboard[x-1 + (y-1) * this.size] = order;
 	};
 
 	this.get = function (x,y) {
 		var val = this.chessboard[x-1 + (y-1) * this.size];
-		if(!val) {
-			return 0;
-		}
-		return val;
+		return val ? val : 0;
 
 	};
 
 	this.getPretty = function(x,y) {
 		var val = this.get(x,y);
-		if(val<10) {
-			return " " + val;
-		}
-		return val;
+		return (val<10) ? " " + val : val;
 	};
 
 	this.moves = [
@@ -57,6 +51,7 @@ function TheGame(size, debug) {
 		[ 1,-2], [-2, 1],
 		[-1,-2], [-2,-1]
 		];
+	var movesCount = this.moves.length;	
 
 	this.getMove = function(i,x,y) {
 		return [x + this.moves[i][0], 
@@ -69,21 +64,20 @@ function TheGame(size, debug) {
 	};
 
 	this.solve = function(x,y,n) {
-		if(this.get(x,y) != 0) {
+		if(this.get(x,y) !== 0) {
 			return false;
 		}
-		this.fill(x,y,n);
-		if(n >= this.size * this.size) {
+		this.set(x,y,n);
+		if(n >= max) {
 			return true;
 		}
 		if(this.debug)
 			this.print();
-		var movesCount = this.moves.length;	
 		for(var i = 0; i< movesCount; i++) {
 			var nextMove = this.getMove(i,x,y);
 			var nx = nextMove[0];
 			var ny = nextMove[1];
-			if(!this.outOfBoard(nx,ny) && (this.get(nx,ny) == 0)) {
+			if(!this.outOfBoard(nx,ny) && (this.get(nx,ny) === 0)) {
 				if(this.debug) 
 					console.log('' + (n+1) + ': trying ' + nx + ', ' + ny);
 				if(this.solve(nx,ny,n+1)) {
@@ -91,7 +85,7 @@ function TheGame(size, debug) {
 				}
 			}
 		}
-		this.fill(x,y, false);
+		this.set(x,y, false);
 		return false;
 	};
 
@@ -101,27 +95,29 @@ function TheGame(size, debug) {
 		var stack = new Stack();
 		stack.push([x,y,n]);
 		this.history[n-1] = this.chessboard.slice();
-		// console.log(stack);
-		var max = this.size * this.size;
-		var movesCount = this.moves.length;	
 		while(n<max && !stack.empty()) {
-			console.log("run " + total);
+			if(this.debug)
+				console.log("run " + total);
 			total++;
 			var thisMove = stack.pop();
-			console.log(thisMove.slice(0,3));
+			if(this.debug)
+				console.log(thisMove.slice(0,3));
+			// [x, y, n] = thisMove
 			var x = thisMove[0];
 			var y = thisMove[1];
 			var n = thisMove[2];
 			if(prevN > n) // clean
 				this.chessboard = this.history[n-1];
-			this.fill(x,y,n);
+			this.set(x,y,n);
 			if(prevN <= n) // save
 				this.history[n] = this.chessboard.slice();
-			this.print();
+			if(this.debug)
+				this.print();
 			if(n === max) break;
 			// can move
 			for(i = 0; i < movesCount; i++) {
 				var nextMove = this.getMove(i,x,y);
+				// [ax, ay] = nextMove
 				var ax = nextMove[0];
 				var ay = nextMove[1];
 				if(!this.outOfBoard(ax,ay) && (this.get(ax,ay) === 0)) {
@@ -133,7 +129,7 @@ function TheGame(size, debug) {
 	};
 
 	this.run = function() {
-		this.solve(1,1,1);
+		this.solveStack(1,1,1);
 		this.print();
 	};
 
@@ -147,12 +143,12 @@ function TheGame(size, debug) {
 		console.log("9,9 " + this.outOfBoard(9,9));
 
 		this.print();
-		this.fill(1,1,10);
-		this.fill(8,8,20);
-		this.fill(4,4,30);
-		this.fill(6,6,40);
-		this.fill(2,7,41);
-		this.fill(7,2,42);
+		this.set(1,1,10);
+		this.set(8,8,20);
+		this.set(4,4,30);
+		this.set(6,6,40);
+		this.set(2,7,41);
+		this.set(7,2,42);
 		this.print();
 	};
 };
